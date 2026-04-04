@@ -1,0 +1,41 @@
+schema: spec-driven
+
+context: |
+  Language: Vietnamese (vi)
+  Tất cả OpenSpec artifacts (proposal, design, tasks, spec deltas) phải viết bằng tiếng Việt.
+  Giữ nguyên tiếng Anh cho:
+  - Thuật ngữ kỹ thuật: API, REST, SSE, CRUD, ORM, CLI, GPU, S3...
+  - Tên code: class, function, variable, type, enum, file path
+  - Code examples và comments trong code block
+  - Tên framework/thư viện: FastAPI, SQLAlchemy, Celery, Redis, Streamlit, Alembic, pytest
+  - Git terminology: branch, merge, commit, PR
+
+  Project: WISMO Embedding Service
+  Tech stack: FastAPI, SQLAlchemy, Celery, Redis, Streamlit
+  Language runtime: Python 3.11
+
+  Service boundary:
+  - Standalone service, không phải Django app.
+  - Không import Django modules.
+  - Chỉ access postgres-vector.
+  - Không access user data hoặc postgres-app.
+
+  OpenSpec execution rules:
+  - Worker chỉ đọc các spec files được liệt kê trong proposal/design "Spec References".
+  - Không load toàn bộ specs folder nếu change đã chỉ rõ spec refs.
+  - Không tự suy diễn ownership tổng hoặc mở rộng scope ngoài active change.
+
+  Embedding spec focus:
+  - ingestion/spec.md
+  - retrieval/spec.md
+  - knowledge-schema/spec.md
+  - storage/spec.md
+  - gpu-worker/spec.md
+  - dashboard/spec.md
+
+  Mandatory interpretation:
+  - Schema, indexes, SQLAlchemy model shape đọc từ knowledge-schema/spec.md.
+  - Storage policy, bucket naming, retention đọc từ storage/spec.md.
+  - Vast.ai / GPU worker lifecycle đọc từ gpu-worker/spec.md.
+  - Retrieval, reranking, multilingual retrieval policy đọc từ retrieval/spec.md.
+  - Pipeline states, extraction, chunking, enrichment đọc từ ingestion/spec.md.
