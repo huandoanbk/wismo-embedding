@@ -1,0 +1,17 @@
+[Unit]
+Description=WISMO Embedding Streamlit Dashboard
+After=network.target
+
+[Service]
+Type=simple
+User=wismo
+Group=wismo
+WorkingDirectory=/srv/wismo/repos/wismo-embedding
+EnvironmentFile=/srv/wismo/repos/wismo-embedding/.env
+Environment="PATH=/srv/wismo/repos/wismo-embedding/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/srv/wismo/repos/wismo-embedding/.venv/bin/streamlit run /srv/wismo/repos/wismo-embedding/dashboard/app.py --server.address 0.0.0.0 --server.port 8501
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

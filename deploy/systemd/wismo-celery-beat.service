@@ -1,0 +1,17 @@
+[Unit]
+Description=WISMO Embedding Celery Beat
+After=network.target
+
+[Service]
+Type=simple
+User=wismo
+Group=wismo
+WorkingDirectory=/srv/wismo/repos/wismo-embedding
+EnvironmentFile=/srv/wismo/repos/wismo-embedding/.env
+Environment="PATH=/srv/wismo/repos/wismo-embedding/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/srv/wismo/repos/wismo-embedding/.venv/bin/celery -A tasks.app beat -l info
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

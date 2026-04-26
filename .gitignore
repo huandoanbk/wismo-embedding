@@ -1,15 +1,25 @@
 __pycache__/
 *.py[cod]
 *.pyo
+*.pyd
 .Python
 .venv/
 venv/
 env/
 .env
+.env.*
+!.env.example
 .coverage
+.coverage.*
 coverage/
 htmlcov/
 .pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.tox/
+build/
+dist/
+*.egg-info/
 alembic/versions/*.pyc
 .vscode/
 .idea/
@@ -17,3 +27,30 @@ alembic/versions/*.pyc
 *.swo
 .DS_Store
 Thumbs.db
+project-spec
+
+# Celery Beat runtime state (binary, regenerated on start)
+celerybeat-schedule
+celerybeat.pid
+
+# Internal planning / specs (not needed for production)
+openspec/
+project-tasks/
+
+# Dev-only dependencies
+requirements-dev.txt
+
+# Dev tooling scripts
+scripts/
+
+# Tests (not deployed to production)
+tests/
+
+# Documentation
+docs/
+AGENTS.md
+CLAUDE.md
+
+# AI tooling configs
+.claude/
+.codex/

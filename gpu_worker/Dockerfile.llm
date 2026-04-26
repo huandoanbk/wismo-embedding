@@ -1,0 +1,24 @@
+FROM nvidia/cuda:12.4.0-devel-ubuntu22.04
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    python3-dev \
+    curl \
+    build-essential \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY requirements-llm.txt /app/requirements-llm.txt
+RUN pip3 install --no-cache-dir -r /app/requirements-llm.txt
+
+COPY gpu_worker/__init__.py /app/gpu_worker/__init__.py
+COPY gpu_worker/llm_runtime /app/gpu_worker/llm_runtime
+COPY gpu_worker/entrypoint_llm.sh /app/gpu_worker/entrypoint_llm.sh
+RUN chmod +x /app/gpu_worker/entrypoint_llm.sh
+
+EXPOSE 8080
+CMD ["./gpu_worker/entrypoint_llm.sh"]

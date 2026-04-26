@@ -1,0 +1,17 @@
+[Unit]
+Description=WISMO Embedding FastAPI
+After=network.target
+
+[Service]
+Type=simple
+User=wismo
+Group=wismo
+WorkingDirectory=/srv/wismo/repos/wismo-embedding
+EnvironmentFile=/srv/wismo/repos/wismo-embedding/.env
+Environment="PATH=/srv/wismo/repos/wismo-embedding/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/srv/wismo/repos/wismo-embedding/.venv/bin/uvicorn api.main:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

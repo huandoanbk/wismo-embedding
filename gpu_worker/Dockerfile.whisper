@@ -1,0 +1,21 @@
+FROM nvidia/cuda:12.1.0-cudnn8-runtime-ubuntu22.04
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.11 \
+    python3-pip \
+    ffmpeg \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY requirements-whisper.txt /app/requirements-whisper.txt
+RUN pip3 install --no-cache-dir -r /app/requirements-whisper.txt
+
+COPY gpu_worker/__init__.py /app/gpu_worker/__init__.py
+COPY gpu_worker/whisper_runtime /app/gpu_worker/whisper_runtime
+COPY gpu_worker/entrypoint_whisper.sh /app/gpu_worker/entrypoint_whisper.sh
+RUN chmod +x /app/gpu_worker/entrypoint_whisper.sh
+
+EXPOSE 8080
+CMD ["./gpu_worker/entrypoint_whisper.sh"]

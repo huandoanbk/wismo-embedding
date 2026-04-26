@@ -1,0 +1,23 @@
+FROM nvidia/cuda:12.4.0-runtime-ubuntu22.04
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.11 \
+    python3-pip \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install torch with CUDA 12.4 wheels — PyPI only has CPU builds
+RUN pip3 install --no-cache-dir torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124
+
+COPY requirements-embedding.txt /app/requirements-embedding.txt
+RUN pip3 install --no-cache-dir -r /app/requirements-embedding.txt
+
+COPY gpu_worker/__init__.py /app/gpu_worker/__init__.py
+COPY gpu_worker/embedding_runtime /app/gpu_worker/embedding_runtime
+COPY gpu_worker/entrypoint_embedding.sh /app/gpu_worker/entrypoint_embedding.sh
+RUN chmod +x /app/gpu_worker/entrypoint_embedding.sh
+
+EXPOSE 8080
+CMD ["./gpu_worker/entrypoint_embedding.sh"]
