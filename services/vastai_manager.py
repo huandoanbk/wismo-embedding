@@ -13,6 +13,20 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
+def _read_launch_env() -> dict[str, str]:
+    """Read .env file directly at call time for instance launch env vars.
+
+    Bypasses the cached settings singleton and OS env vars so that updating
+    .env takes effect on the next instance launch without a service restart.
+    Falls back to the cached settings value for any key not found in the file.
+    """
+    from dotenv import dotenv_values
+    from pathlib import Path
+
+    env_path = Path(__file__).resolve().parent.parent / ".env"
+    return dotenv_values(env_path)
+
 import httpx
 import redis
 
@@ -342,24 +356,34 @@ class VastAIManager:
     def launch_instance(self, offer_id: str, mode: str = "both", image: str | None = None) -> str:
         """Launch a Vast.ai instance from the prebuilt registry image."""
         normalized_mode = "llm" if mode in {"llm", "llm_refinement", "llm_enrichment"} else mode
+        # Read .env file directly so changes take effect without a service restart.
+        env_file = _read_launch_env()
+
+        def _e(key: str, fallback: str) -> str:
+            return env_file.get(key) or fallback
+
         env_pairs = {
-            "REDIS_URL": settings.vastai_redis_url or settings.redis_url,
-            "S3_ENDPOINT_URL": settings.s3_endpoint_url,
-            "S3_ACCESS_KEY": settings.s3_access_key,
-            "S3_SECRET_KEY": settings.s3_secret_key,
-            "S3_REGION": settings.s3_region,
-            "S3_BUCKET_RAW": settings.s3_bucket_raw,
-            "S3_BUCKET_EXTRACTS": settings.s3_bucket_extracts,
-            "VPS_CALLBACK_URL": settings.vps_callback_url,
+            "REDIS_URL": _e("VASTAI_REDIS_URL", "") or _e("REDIS_URL", settings.redis_url),
+            "S3_ENDPOINT_URL": _e("S3_ENDPOINT_URL", settings.s3_endpoint_url),
+            "S3_ACCESS_KEY": _e("S3_ACCESS_KEY", settings.s3_access_key),
+            "S3_SECRET_KEY": _e("S3_SECRET_KEY", settings.s3_secret_key),
+            "S3_REGION": _e("S3_REGION", settings.s3_region),
+            "S3_BUCKET_RAW": _e("S3_BUCKET_RAW", settings.s3_bucket_raw),
+            "S3_BUCKET_EXTRACTS": _e("S3_BUCKET_EXTRACTS", settings.s3_bucket_extracts),
+            "VPS_CALLBACK_URL": _e("VPS_CALLBACK_URL", settings.vps_callback_url),
             "WORKER_MODE": normalized_mode,
-            "INTERNAL_SHARED_SECRET": settings.internal_shared_secret,
-            "GPU_TASK_REQUEST_TIMEOUT_SECONDS": str(settings.gpu_task_request_timeout_seconds),
+            "INTERNAL_SHARED_SECRET": _e("INTERNAL_SHARED_SECRET", settings.internal_shared_secret),
+            "GPU_TASK_REQUEST_TIMEOUT_SECONDS": _e(
+                "GPU_TASK_REQUEST_TIMEOUT_SECONDS",
+                str(settings.gpu_task_request_timeout_seconds),
+            ),
         }
-        if settings.huggingface_hub_token:
-            env_pairs["HF_TOKEN"] = settings.huggingface_hub_token
+        hf_token = _e("HUGGINGFACE_HUB_TOKEN", settings.huggingface_hub_token)
+        if hf_token:
+            env_pairs["HF_TOKEN"] = hf_token
         if normalized_mode == "llm":
-            env_pairs["LLM_MODEL_NAME"] = settings.llm_model_name
-            env_pairs["LLM_QUANTIZATION"] = settings.llm_quantization
+            env_pairs["LLM_MODEL_NAME"] = _e("LLM_MODEL_NAME", settings.llm_model_name)
+            env_pairs["LLM_QUANTIZATION"] = _e("LLM_QUANTIZATION", settings.llm_quantization)
         if normalized_mode == "llm":
             env_pairs["LLM_QUEUE_NAMES"] = f"{LLM_QUEUE_REFINEMENT},{LLM_QUEUE_ENRICHMENT}"
         env_string = " ".join(f"-e {key}={value}" for key, value in env_pairs.items())
